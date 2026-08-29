@@ -1,0 +1,156 @@
+# wp-local template: python-uv — the CI lane for a uv-managed Python project.
+#
+# Three rules govern every line here, and two of them look like typos:
+#
+#  1. `$${VAR}` in `commands:` is DOUBLE-dollar. Woodpecker interpolates
+#     `${VAR}` over the YAML before the step runs, so a single `$` yields an
+#     empty string in the shell — silently, because the substitution succeeds
+#     (FR-015, lessons_learned ENV-012).
+#  2. `${VAR}` in `volumes:` is SINGLE-dollar, deliberately. That interpolation
+#     is exactly what FR-012 relies on: the engine supplies these values with
+#     `exec --env`, which is why it never has to rewrite this file (ENV-016).
+#  3. Every image is NixOS-based and digest-pinned (plan.md Norms). Toolchains
+#     come from the pinned nixpkgs via `nix shell`, not from a language-vendor
+#     image, so a step's dependency chain is pinned the same way the engine's is.
+#
+# Delegation-first (the parity rule): each step calls the project's own entry
+# point where one exists. A repo that already has `make test` should have this
+# step call it rather than re-specifying the command here.
+#
+# C4: a **stack-scoped** target wins over the bare one, so a polyglot repository
+# can say which target belongs to this lane. `8760`'s single `make install`
+# runs `uv sync` AND `bun install`, and hard-fails when bun is absent — so the
+# python lane could never bootstrap the python side without the node toolchain.
+# Adding `py-install:` there is the whole fix, and it is the repository's to
+# make deliberately rather than the engine's to guess. The prefix is fixed per
+# template (`py`, `node`, `idf`), never inferred.
+#
+# Which is why `gnumake` is in the `nix shell` list next to the language
+# toolchain. The base image is `nixos/nix` and ships no `make`, and `nix shell`
+# provides exactly what it is asked for — so without it the delegation branch,
+# the FIRST thing every step tries, dies with `make: command not found` and
+# exit 127. Measured on `forkrul/security_unification`, whose Makefile has both
+# `lint:` and `test:`; `make-delegate` and `esp-idf` already listed it and were
+# the only two templates that could delegate at all.
+#
+# `python312` and `UV_PYTHON_PREFERENCE=only-system` are there for the same
+# reason, one layer down, and rule 3 above is the whole argument. With no
+# python in the shell, uv did what uv is designed to do: fetch its own
+# python-build-standalone interpreter — a vendor binary, dynamically linked
+# against an FHS loader that does not exist on NixOS. It downloads fine and
+# cannot execute, so uv reports
+#
+#     error: Python interpreter not found at `/root/.local/share/uv/python/…`
+#
+# about a file that is right there on disk. Measured 2026-08-12 on
+# forkrul-common, 8760 and security_unification: three of three, and every
+# python/uv repository in the estate — 14 of 22 — would have hit it. This lane
+# had never completed a python step.
+#
+# `only-system` is the load-bearing half: without it uv treats the nix python
+# as one candidate among many and still downloads when a repo's pin does not
+# match. A repository pinning a python this nixpkgs does not carry now fails
+# with a clear "no interpreter found" instead of a phantom missing file — add
+# the matching `python3XX` here, which is the fix and also the record of it.
+#
+# **Why 3.12 and not the newest.** This started at `python314`, chosen for no
+# better reason than being newest, and 8760 showed what that costs: its pinned
+# `asyncpg==0.29.0` predates 3.13 and has no wheel for it, so uv fell back to
+# compiling C — on a base image with no compiler. Under 3.13 the same, under
+# 3.12 the whole dependency set resolves from wheels. A CI interpreter wants
+# wheel coverage, not novelty; 3.12 satisfies every `requires-python` in the
+# estate (8760 `>=3.11`, forkrul-common `>=3.11`, security_unification
+# `>=3.11`) and is old enough that the pins they already have are built for it.
+#
+# `ruff` likewise: the lint fallback ran `uv run ruff`, which needs ruff in the
+# project's own dependencies. forkrul-common does not have it there, so the
+# fallback died `Failed to spawn: ruff` even once the interpreter worked.
+
+when:
+  # push/pull_request for the hosted server; manual so a human running bare
+  # `woodpecker exec` is not filtered out. CI-class, never deploy-class.
+  event: [push, pull_request, manual]
+
+variables:
+  - &nix_image nixos/nix@sha256:377d4887aca98f0dfa12971c1ea6d6a625a435d8b610d4c95a436843da6fbfd1
+  # Pinned nixpkgs: the same revision the engine's own flake.lock pins, so the
+  # toolchain a pipeline runs is the toolchain this repo was tested against.
+  - &nixpkgs github:NixOS/nixpkgs/b6018f87da91d19d0ab4cf979885689b469cdd41
+
+steps:
+  # This lane had NO install step until 2026-08-12, while `node-npm` and
+  # `node-pnpm-monorepo` always had one — an asymmetry with real consequences.
+  # A repository's `make install` is where its bootstrap lives: `8760`'s runs
+  # `init-submodules` and `uv sync`, so without this step its submodules stay
+  # empty and its dev extras are never installed, which is why `uv run ruff`
+  # inside its own `make lint` could not find ruff at all. Same reason
+  # `forkrul-common`'s lint died `Failed to spawn: ruff` (ENV-061).
+  - name: install
+    image: *nix_image
+    environment:
+      NIXPKGS: *nixpkgs
+      UV_PYTHON_PREFERENCE: only-system
+    commands:
+      - 'nix --extra-experimental-features "nix-command flakes" shell "$${NIXPKGS}#uv" "$${NIXPKGS}#gnumake" "$${NIXPKGS}#python312" -c sh -c "
+           if [ -f Makefile ] && grep -qE \"^py-install:\" Makefile; then make py-install;
+           elif [ -f Makefile ] && grep -qE \"^install:\" Makefile; then make install;
+           elif [ -f uv.lock ]; then uv sync --frozen;
+           else uv sync; fi"'
+    volumes:
+      - ${WP_LOCAL_GITDIR}:${WP_LOCAL_GITDIR}:ro
+      - ${WP_LOCAL_MASK_EMPTY}:${WP_LOCAL_GITDIR}/wp-local:ro
+      - ${WP_LOCAL_MASK_CONFIG}:${WP_LOCAL_GITDIR}/config:ro
+      - ${WP_LOCAL_CACHE_UV}:/woodpecker-cache/uv
+      - ${WP_LOCAL_CACHE_NIX}:/woodpecker-cache/nix
+
+  - name: lint
+    image: *nix_image
+    environment:
+      NIXPKGS: *nixpkgs
+      # See the header: uv MUST NOT fetch its own interpreter on this base image.
+      UV_PYTHON_PREFERENCE: only-system
+    commands:
+      - 'nix --extra-experimental-features "nix-command flakes" shell "$${NIXPKGS}#uv" "$${NIXPKGS}#gnumake" "$${NIXPKGS}#python312" "$${NIXPKGS}#ruff" -c sh -c "
+           if [ -f Makefile ] && grep -qE \"^py-lint:\" Makefile; then make py-lint;
+           elif [ -f Makefile ] && grep -qE \"^lint:\" Makefile; then make lint;
+           else ruff check . && ruff format --check .; fi"'
+    depends_on: [install]
+    volumes:
+      # FR-012: the git common dir, read-only at its identical host path,
+      # so gitleaks and monorepo `affected:*` detection see real history.
+      - ${WP_LOCAL_GITDIR}:${WP_LOCAL_GITDIR}:ro
+      # ...and the mount is MASKED: an immutable empty dir over the
+      # engine's own state, and an allowlisted config over the repo's.
+      # Without these a step can read this engine's state and the outbox.
+      - ${WP_LOCAL_MASK_EMPTY}:${WP_LOCAL_GITDIR}/wp-local:ro
+      - ${WP_LOCAL_MASK_CONFIG}:${WP_LOCAL_GITDIR}/config:ro
+      - ${WP_LOCAL_CACHE_UV}:/woodpecker-cache/uv
+      - ${WP_LOCAL_CACHE_NIX}:/woodpecker-cache/nix
+
+  - name: test
+    image: *nix_image
+    environment:
+      NIXPKGS: *nixpkgs
+      # See the header: uv MUST NOT fetch its own interpreter on this base image.
+      UV_PYTHON_PREFERENCE: only-system
+    commands:
+      - 'nix --extra-experimental-features "nix-command flakes" shell "$${NIXPKGS}#uv" "$${NIXPKGS}#gnumake" "$${NIXPKGS}#python312" -c sh -c "
+           if [ -f Makefile ] && grep -qE \"^py-test:\" Makefile; then make py-test;
+           elif [ -f Makefile ] && grep -qE \"^test:\" Makefile; then make test;
+           else uv sync --frozen && uv run pytest -q; fi"'
+      # Anything written here is reachable on the host afterwards; the engine
+      # prints the path in run.log at the end of the run (FR-012).
+      - 'mkdir -p "$${WP_LOCAL_ARTIFACTS}" || true'
+    volumes:
+      # FR-012: the git common dir, read-only at its identical host path,
+      # so gitleaks and monorepo `affected:*` detection see real history.
+      - ${WP_LOCAL_GITDIR}:${WP_LOCAL_GITDIR}:ro
+      # ...and the mount is MASKED: an immutable empty dir over the
+      # engine's own state, and an allowlisted config over the repo's.
+      # Without these a step can read this engine's state and the outbox.
+      - ${WP_LOCAL_MASK_EMPTY}:${WP_LOCAL_GITDIR}/wp-local:ro
+      - ${WP_LOCAL_MASK_CONFIG}:${WP_LOCAL_GITDIR}/config:ro
+      - ${WP_LOCAL_CACHE_UV}:/woodpecker-cache/uv
+      - ${WP_LOCAL_CACHE_NIX}:/woodpecker-cache/nix
+      - ${WP_LOCAL_ARTIFACT_DIR}:/woodpecker-artifacts
+    depends_on: [install, lint]

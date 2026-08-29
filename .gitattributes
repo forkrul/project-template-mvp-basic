@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+# Keep scaffolding out of `git archive` release tarballs.
+.github/              export-ignore
+.woodpecker/          export-ignore
+.gitattributes        export-ignore
+.gitignore            export-ignore
+.editorconfig         export-ignore
+tests/                export-ignore
+scripts/              export-ignore
+TEMPLATE_CHECKLIST.md export-ignore
