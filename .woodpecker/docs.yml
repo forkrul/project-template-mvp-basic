@@ -1,0 +1,45 @@
+# Docs lane — the Sphinx site must build with ZERO warnings.
+#
+# Same three rules as the stack lanes (see the header of .woodpecker/test.yml):
+#
+#  1. `$${VAR}` in `commands:` is DOUBLE-dollar — Woodpecker interpolates
+#     `${VAR}` over the YAML before the step runs.
+#  2. `${VAR}` in `volumes:` is SINGLE-dollar, deliberately — the wp-local
+#     engine (and scripts/ci-local.sh) supplies these values with `exec --env`.
+#  3. Every image is NixOS-based and digest-pinned; toolchains come from the
+#     pinned nixpkgs via `nix shell`.
+#
+# Delegation-first: the step calls `make docs`, so what CI enforces is exactly
+# what a developer runs locally. The `-W --keep-going` gate lives in the
+# Makefile, not here — change it there, once.
+
+when:
+  event: [push, pull_request, manual]
+
+variables:
+  - &nix_image nixos/nix@sha256:377d4887aca98f0dfa12971c1ea6d6a625a435d8b610d4c95a436843da6fbfd1
+  - &nixpkgs github:NixOS/nixpkgs/b6018f87da91d19d0ab4cf979885689b469cdd41
+
+steps:
+  - name: docs
+    image: *nix_image
+    environment:
+      NIXPKGS: *nixpkgs
+      # uv MUST NOT fetch its own interpreter on this base image — see the
+      # test.yml header for the measured failure mode.
+      UV_PYTHON_PREFERENCE: only-system
+    commands:
+      - 'nix --extra-experimental-features "nix-command flakes" shell "$${NIXPKGS}#uv" "$${NIXPKGS}#gnumake" "$${NIXPKGS}#python312" -c sh -c "
+           if [ -f Makefile ] && grep -qE \"^docs:\" Makefile; then make docs;
+           else uv run sphinx-build -W --keep-going -b html docs docs/_build/html; fi"'
+    volumes:
+      # FR-012: the git common dir, read-only at its identical host path,
+      # so gitleaks and monorepo `affected:*` detection see real history.
+      - ${WP_LOCAL_GITDIR}:${WP_LOCAL_GITDIR}:ro
+      # ...and the mount is MASKED: an immutable empty dir over the
+      # engine's own state, and an allowlisted config over the repo's.
+      # Without these a step can read this engine's state and the outbox.
+      - ${WP_LOCAL_MASK_EMPTY}:${WP_LOCAL_GITDIR}/wp-local:ro
+      - ${WP_LOCAL_MASK_CONFIG}:${WP_LOCAL_GITDIR}/config:ro
+      - ${WP_LOCAL_CACHE_UV}:/woodpecker-cache/uv
+      - ${WP_LOCAL_CACHE_NIX}:/woodpecker-cache/nix

@@ -1,0 +1,76 @@
+# wp-local template: security — secret scanning and shell linting.
+#
+# Ships alongside a stack template rather than instead of one; `init` writes
+# both. Same three rules as every template: `$${VAR}` in commands (double),
+# `${VAR}` in volumes (single, and load-bearing — FR-012), NixOS-based
+# digest-pinned images only.
+#
+# **No secret references anywhere in this file.** A scanner that needs a
+# credential to scan is scanning the wrong thing, and FR-016's delivery path is
+# reserved for pipelines that genuinely need one. (The gate for this is a plain
+# grep, so the forbidden token must not appear even in a comment.)
+
+when:
+  event: [push, pull_request, manual]
+
+variables:
+  - &nix_image nixos/nix@sha256:377d4887aca98f0dfa12971c1ea6d6a625a435d8b610d4c95a436843da6fbfd1
+  - &nixpkgs github:NixOS/nixpkgs/b6018f87da91d19d0ab4cf979885689b469cdd41
+
+steps:
+  - name: gitleaks
+    image: *nix_image
+    environment:
+      NIXPKGS: *nixpkgs
+    commands:
+      # `--no-git` scans the working tree only. The full history scan is
+      # deliberately NOT the default here: the run workspace is a detached
+      # worktree whose git admin area sits under a read-only mount (FR-012), so
+      # a history scan belongs in the hosted pipeline where it has a full clone.
+      - 'nix --extra-experimental-features "nix-command flakes" shell "$${NIXPKGS}#gitleaks" -c
+           gitleaks detect --no-git --redact --verbose --source .'
+    volumes:
+      # FR-012: the git common dir, read-only at its identical host path,
+      # so gitleaks and monorepo `affected:*` detection see real history.
+      - ${WP_LOCAL_GITDIR}:${WP_LOCAL_GITDIR}:ro
+      # ...and the mount is MASKED: an immutable empty dir over the
+      # engine's own state, and an allowlisted config over the repo's.
+      # Without these a step can read this engine's state and the outbox.
+      - ${WP_LOCAL_MASK_EMPTY}:${WP_LOCAL_GITDIR}/wp-local:ro
+      - ${WP_LOCAL_MASK_CONFIG}:${WP_LOCAL_GITDIR}/config:ro
+      - ${WP_LOCAL_CACHE_NIX}:/woodpecker-cache/nix
+
+  # C5. The scan excluded only ./.git/*, so it reported on code the repository
+  # did not write: 19 of forkrul-common's 23 findings were vendored spec-kit
+  # tooling, and 8760's 286 include 91 in development/scripts/archive and 20 in
+  # .specify/. The only lever a repo had was `.shellcheckrc`, which disables
+  # CODES globally — so silencing vendored noise also silenced that class in the
+  # repo's own scripts, and for 8760 the noise includes SC1072/SC1073 parse
+  # errors, which nobody should ever disable globally. Excluded by PATH instead:
+  # vendored trees and archives, which a repository is not asked to fix.
+  - name: shellcheck
+    image: *nix_image
+    environment:
+      NIXPKGS: *nixpkgs
+    commands:
+      # No shell scripts is a pass, not a failure — `find | xargs -r` is what
+      # makes that true; without -r, xargs runs shellcheck with no arguments and
+      # it exits nonzero on a repo that simply has no shell in it.
+      - 'nix --extra-experimental-features "nix-command flakes" shell "$${NIXPKGS}#shellcheck" -c sh -c "
+           find . -type f -name \"*.sh\"
+             -not -path \"./.git/*\"
+             -not -path \"*/.specify/*\" -not -path \"*/vendor/*\"
+             -not -path \"*/node_modules/*\" -not -path \"*/third_party/*\"
+             -not -path \"*/.venv/*\" -not -path \"*/.direnv/*\"
+             -not -path \"*/archive/*\" -print0
+           | xargs -0 -r shellcheck -S warning"'
+    volumes:
+      # FR-012: the git common dir, read-only at its identical host path,
+      # so gitleaks and monorepo `affected:*` detection see real history.
+      - ${WP_LOCAL_GITDIR}:${WP_LOCAL_GITDIR}:ro
+      # ...and the mount is MASKED: an immutable empty dir over the
+      # engine's own state, and an allowlisted config over the repo's.
+      # Without these a step can read this engine's state and the outbox.
+      - ${WP_LOCAL_MASK_EMPTY}:${WP_LOCAL_GITDIR}/wp-local:ro
+      - ${WP_LOCAL_MASK_CONFIG}:${WP_LOCAL_GITDIR}/config:ro
+      - ${WP_LOCAL_CACHE_NIX}:/woodpecker-cache/nix
