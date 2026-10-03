@@ -21,8 +21,9 @@
 | `.woodpecker/` | forkrul-woodpecker-CI lanes (`test`, `security`, `docs`) — byte-compatible with `wp-local` |
 | `.github/workflows/ci.yml` | The same `make` targets on GitHub Actions |
 | `scripts/ci-local.sh` | `make ci-local`: run the real Woodpecker pipelines locally in Docker |
+| `scripts/check_licenses.py` + `licenses-allow.toml` | `make licenses`: fail on copyleft or unknown runtime licences; approved exceptions are allowlisted with a reason |
 | `docs/` | Sphinx + myst-parser (Markdown-only) site, built with `-W` — zero warnings or the build fails |
-| `src/mvp_template/` + `tests/` | Placeholder package + test so every lane exercises something real |
+| `src/mvp_template/` + `tests/` | Placeholder package + test so every lane exercises something real; `tests/conftest.py` has a `no_network` fixture for offline tests |
 | `PACKAGES.md` | The shared `forkrul-*` package menu — pick what this project needs |
 | `TEMPLATE_CHECKLIST.md` | De-templating checklist; ends with a grep proving no template residue remains |
 | `CHANGELOG.md` | [Common Changelog](https://common-changelog.org) — hand-curated, no `Unreleased` section |
@@ -31,7 +32,7 @@
 
 ```sh
 make setup        # install toolchain + locked dependencies (uv)
-make check        # lint + test + docs — everything CI runs
+make check        # lint + test + docs + licences — everything CI runs
 make docs-serve   # browse the documentation on :8000
 ```
 

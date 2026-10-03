@@ -1,0 +1,8 @@
+# Licence-gate allowlist (scripts/check_licenses.py, run by `make licenses` and `make check`).
+# Use it only for a distribution whose metadata omits or misstates a licence someone approved.
+# Every entry needs all three fields:
+#
+# [[allow]]
+# name = "some-dist"
+# reason = "MIT per the LICENSE shipped in some_dist-*.dist-info/licenses (metadata declares none)"
+# approved_by = "<who>, <date>"

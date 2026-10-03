@@ -15,11 +15,14 @@ Pick your names first and use them everywhere below:
 
 ```sh
 git mv src/mvp_template "src/new_pkg"
-git grep -lz 'mvp_template' | xargs -0 sed -i 's/mvp_template/new_pkg/g'
-git grep -lz 'forkrul-mvp-template' | xargs -0 sed -i 's/forkrul-mvp-template/new-dist/g'
-git grep -lz 'project-template-mvp-basic' | xargs -0 sed -i 's/project-template-mvp-basic/NEW-REPO/g'
+git grep -lz 'mvp_template' -- ':!TEMPLATE_CHECKLIST.md' | xargs -0 sed -i 's/mvp_template/new_pkg/g'
+git grep -lz 'forkrul-mvp-template' -- ':!TEMPLATE_CHECKLIST.md' | xargs -0 sed -i 's/forkrul-mvp-template/new-dist/g'
+git grep -lz 'project-template-mvp-basic' -- ':!TEMPLATE_CHECKLIST.md' | xargs -0 sed -i 's/project-template-mvp-basic/NEW-REPO/g'
 uv lock && make check   # regenerate the lockfile under the new name; stay green
 ```
+
+The greps skip this file so its own residue check in step 9 keeps the template's
+names.
 
 ## 2. Rewrite the identity prose (sed cannot do this part)
 
@@ -48,12 +51,20 @@ uv lock && make check   # regenerate the lockfile under the new name; stay green
 - [ ] Pick what this project needs from `PACKAGES.md` and `uv add` it (auth notes are
       in that file).
 - [ ] Delete the rows you did not adopt — or delete `PACKAGES.md` entirely and rely on
-      the estate copy in the template repo.
+      the estate copy in the template repo. If you keep it, rewrite its intro, which
+      points at this checklist.
+- [ ] Every dependency you add passes the licence gate (`make licenses`, part of
+      `make check`): GPL-family, Affero or unknown runtime licences fail. A dependency
+      whose metadata omits a licence someone approved goes in `licenses-allow.toml`
+      with a `reason` and an `approved_by`. List any extras that ship at runtime in
+      `SHIPPED_EXTRAS` in `scripts/check_licenses.py`.
 
 ## 5. Wire up CI
 
 - [ ] Replace `woodpecker.example.com` in `README.md` with the real Woodpecker host,
-      and enable the repo in the Woodpecker UI (it reads `.woodpecker/` as-is).
+      and enable the repo in the Woodpecker UI (it reads `.woodpecker/` as-is). If the
+      host is not known yet, delete the badge line rather than leave a broken badge;
+      `docs/ci.md` has the badge URL format for later.
 - [ ] Onboard the local pre-commit engine: `wp-local init --template python-uv`
       (it keeps the committed `.woodpecker/` pipelines and writes `.wp-local.yml` +
       hooks; commit `.wp-local.yml`).
@@ -76,7 +87,7 @@ uv lock && make check   # regenerate the lockfile under the new name; stay green
 ## 8. Full verification
 
 ```sh
-make check      # lint + test + docs, all green
+make check      # lint + test + docs + licences, all green
 ```
 
 ## 9. Prove no template residue remains
@@ -90,8 +101,21 @@ git grep -nIE 'mvp[_-]template|project-template-mvp-basic|Use this template|wood
 
 ## 10. Remove the evidence, commit, tag
 
+Delete the checklist together with everything that points at it:
+
+- `git rm TEMPLATE_CHECKLIST.md docs/template-checklist.md`
+- remove `template-checklist` from the toctree in `docs/index.md`
+- remove the `TEMPLATE_CHECKLIST.md export-ignore` line from `.gitattributes`
+- drop `TEMPLATE_CHECKLIST.md` from the docstring in `docs/conf.py`
+- remove the `TEMPLATE_CHECKLIST.md` row from `README.md`'s **What's inside**
+- reword the package row in `docs/quickstart.md`'s **Layout**, which links to the
+  checklist page
+
+Then prove nothing dangles, and commit:
+
 ```sh
-git rm TEMPLATE_CHECKLIST.md
+git grep -nIE 'TEMPLATE_CHECKLIST|template-checklist'    # must print nothing
+make check
 git add -A && git commit -m "chore: de-template repository"
 git tag v0.1.0    # matches the CHANGELOG entry; push tags with the branch
 ```

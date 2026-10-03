@@ -1,7 +1,7 @@
 # CI
 
 One set of checks, defined once in the `Makefile` (`make check` = lint + test +
-docs), runnable four ways.
+docs + licences), runnable four ways.
 
 ## Hosted Woodpecker (forkrul-woodpecker-CI)
 
@@ -44,6 +44,8 @@ canonical. Commit the `.wp-local.yml` it writes.
 `.github/workflows/ci.yml` runs `make setup`, `make lint`, `make test`,
 `make docs` on pushes to `master`/`main` and on pull requests — the same
 targets, so the two CI systems cannot disagree about what "green" means.
+It does not run `make licenses` yet: adding that step is a CI-config change, so
+it waits for approval. Until then, `make check` locally covers the licence gate.
 
 ## Locally, in Docker: `make ci-local`
 

@@ -10,7 +10,8 @@
 
 ```sh
 make setup        # install toolchain + locked dependencies
-make check        # lint + test + docs — exactly what CI runs
+make check        # lint + test + docs + licences — exactly what CI runs
+make licenses     # the licence gate on its own
 make format       # reformat and autofix (ruff)
 make docs-serve   # build the docs and serve them on :8000
 make ci-local     # run the real .woodpecker/ pipelines in Docker

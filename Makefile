@@ -6,7 +6,7 @@ SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
 .DEFAULT_GOAL := help
 
-.PHONY: help setup install lint format test docs docs-serve check ci-local clean
+.PHONY: help setup install lint format test docs docs-serve licenses check ci-local clean
 
 help:  ## List targets.
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-12s %s\n", $$1, $$2}'
@@ -34,7 +34,10 @@ docs:  ## Build the Sphinx site; any warning fails the build.
 docs-serve: docs  ## Build the site and serve it on :8000.
 	uv run python -m http.server 8000 --directory docs/_build/html
 
-check: lint test docs  ## Everything CI runs.
+licenses:  ## Fail on copyleft (GPL-family, Affero) or unknown runtime licences.
+	uv run python scripts/check_licenses.py
+
+check: lint test docs licenses  ## Everything CI runs.
 
 ci-local:  ## Run the .woodpecker/ pipelines locally in Docker (woodpecker-cli exec).
 	bash scripts/ci-local.sh

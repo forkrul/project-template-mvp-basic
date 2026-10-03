@@ -14,10 +14,12 @@ with the real one-sentence description; see TEMPLATE_CHECKLIST.md.)
 
 ## Checks (run before every commit; fix failures before finishing)
 
-- All checks: `make check`   # lint + test + docs
+- All checks: `make check`   # lint + test + docs + licences
 - Tests: `make test` (`uv run pytest`)
 - Lint / autofix: `make lint` / `make format` (ruff, config in pyproject.toml)
 - Docs: `make docs` — Sphinx with `-W`: a single warning is a failure
+- Licences: `make licenses` — GPL-family, Affero or unknown runtime licences fail;
+  approved exceptions go in `licenses-allow.toml` (ask before adding one)
 - CI parity: `make ci-local` runs the real `.woodpecker/` pipelines in Docker
 
 ## Workflow
