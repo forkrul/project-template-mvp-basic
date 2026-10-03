@@ -1,6 +1,6 @@
 [project]
 name = "forkrul-mvp-template"
-version = "0.1.0"
+version = "0.2.0"
 description = "Minimal, agent-ready Python/uv service skeleton for the forkrul estate"
 readme = "README.md"
 requires-python = ">=3.11"
