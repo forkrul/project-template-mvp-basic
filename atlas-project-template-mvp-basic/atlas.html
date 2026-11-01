@@ -1,0 +1,562 @@
+<title>Project Template Mvp Basic — Feature & Reality Atlas</title>
+<style>
+  :root {
+    --ground: #f2f3f1;
+    --surface: #fbfbfa;
+    --surface-2: #eaece8;
+    --ink: #16191a;
+    --ink-2: #4a4f4e;
+    --ink-3: #767b79;
+    --rule: #d7dad6;
+    --rule-2: #c3c7c2;
+    --accent: #8a3033;
+    --accent-soft: #f0e2e1;
+    --shipped: #2c6f52;
+    --backend: #2a6389;
+    --partial: #8a6212;
+    --spec: #6a706e;
+    --shipped-bg: #e2eee9;
+    --backend-bg: #e1ebf2;
+    --partial-bg: #f2ead9;
+    --spec-bg: #e8eae9;
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+    --rail: 300px;
+    --measure: 74ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #131614;
+      --surface: #1a1e1c;
+      --surface-2: #232725;
+      --ink: #e7e9e5;
+      --ink-2: #b3b8b4;
+      --ink-3: #868c88;
+      --rule: #2c312e;
+      --rule-2: #3b423e;
+      --accent: #d98c86;
+      --accent-soft: #33211f;
+      --shipped: #6cc39a;
+      --backend: #74b3dd;
+      --partial: #d3a64e;
+      --spec: #9aa19d;
+      --shipped-bg: #17281f;
+      --backend-bg: #16242e;
+      --partial-bg: #2a2314;
+      --spec-bg: #232624;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #131614;
+    --surface: #1a1e1c;
+    --surface-2: #232725;
+    --ink: #e7e9e5;
+    --ink-2: #b3b8b4;
+    --ink-3: #868c88;
+    --rule: #2c312e;
+    --rule-2: #3b423e;
+    --accent: #d98c86;
+    --accent-soft: #33211f;
+    --shipped: #6cc39a;
+    --backend: #74b3dd;
+    --partial: #d3a64e;
+    --spec: #9aa19d;
+    --shipped-bg: #17281f;
+    --backend-bg: #16242e;
+    --partial-bg: #2a2314;
+    --spec-bg: #232624;
+  }
+
+  :root[data-theme="light"] {
+    --ground: #f2f3f1;
+    --surface: #fbfbfa;
+    --surface-2: #eaece8;
+    --ink: #16191a;
+    --ink-2: #4a4f4e;
+    --ink-3: #767b79;
+    --rule: #d7dad6;
+    --rule-2: #c3c7c2;
+    --accent: #8a3033;
+    --accent-soft: #f0e2e1;
+    --shipped: #2c6f52;
+    --backend: #2a6389;
+    --partial: #8a6212;
+    --spec: #6a706e;
+    --shipped-bg: #e2eee9;
+    --backend-bg: #e1ebf2;
+    --partial-bg: #f2ead9;
+    --spec-bg: #e8eae9;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--surface-2);
+    padding: 0.1em 0.34em;
+    border-radius: 3px;
+    word-break: break-word;
+  }
+
+  /* ---------- shell ---------- */
+  .layout { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); }
+
+  .rail {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid var(--rule);
+    background: var(--surface);
+    padding: 28px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .brand { display: flex; flex-direction: column; gap: 4px; }
+  .brand-k {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .brand-t { font-family: var(--serif); font-size: 21px; line-height: 1.2; }
+
+  .search {
+    width: 100%;
+    font: inherit;
+    font-size: 14px;
+    padding: 8px 10px;
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+    background: var(--ground);
+    color: var(--ink);
+  }
+  .search::placeholder { color: var(--ink-3); }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font: inherit;
+    font-size: 11.5px;
+    font-family: var(--mono);
+    letter-spacing: 0.03em;
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--rule-2);
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { border-color: currentColor; }
+  .chip--shipped[aria-pressed="true"] { color: var(--shipped); background: var(--shipped-bg); }
+  .chip--backend[aria-pressed="true"] { color: var(--backend); background: var(--backend-bg); }
+  .chip--partial[aria-pressed="true"] { color: var(--partial); background: var(--partial-bg); }
+  .chip--spec[aria-pressed="true"] { color: var(--spec); background: var(--spec-bg); }
+
+  .nav-cluster { border-top: 1px solid var(--rule); padding-top: 10px; }
+  .nav-c {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 15px;
+    padding-bottom: 4px;
+  }
+  .nav-n { font-family: var(--mono); font-size: 10px; color: var(--accent); }
+  .nav-feats { display: flex; flex-direction: column; }
+  .navf {
+    display: flex;
+    gap: 7px;
+    text-decoration: none;
+    color: var(--ink-2);
+    font-size: 12.5px;
+    line-height: 1.45;
+    padding: 2px 0 2px 18px;
+    border-left: 2px solid transparent;
+  }
+  .navf:hover { color: var(--ink); border-left-color: var(--accent); }
+  .navf-id { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); flex: none; padding-top: 2px; }
+  .navf-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- main ---------- */
+  main { padding: 0 0 120px; min-width: 0; }
+
+  .masthead {
+    padding: 72px 40px 40px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface);
+  }
+  .masthead-in { max-width: var(--measure); }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(30px, 4.4vw, 46px);
+    line-height: 1.1;
+    margin: 0 0 18px;
+    text-wrap: balance;
+    font-weight: 600;
+  }
+  .standfirst { font-size: 17.5px; color: var(--ink-2); margin: 0 0 28px; max-width: 62ch; }
+
+  .apilink { margin: 14px 0 0; }
+  .apilink a { font-family: var(--mono); font-size: 12px; color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .apilink a:hover, .apilink a:focus-visible { color: var(--ink); }
+
+  .provenance {
+    margin: 18px 0 0;
+    font-size: 13px;
+    color: var(--ink-3);
+    border-left: 2px solid var(--rule-2);
+    padding-left: 12px;
+  }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 26px; padding-top: 22px; border-top: 1px solid var(--rule); }
+  .stat { display: flex; flex-direction: column; gap: 1px; }
+  .stat-n { font-family: var(--serif); font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat-l { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .stat--shipped .stat-n { color: var(--shipped); }
+  .stat--backend .stat-n { color: var(--backend); }
+  .stat--partial .stat-n { color: var(--partial); }
+  .stat--spec .stat-n { color: var(--spec); }
+
+  .cluster { padding: 0 40px; }
+  .cluster-h {
+    max-width: var(--measure);
+    padding: 64px 0 10px;
+    margin-bottom: 26px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .cluster-n {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .cluster-h h2 {
+    font-family: var(--serif);
+    font-size: clamp(23px, 3vw, 31px);
+    line-height: 1.15;
+    margin: 0 0 10px;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  .cluster-intro { color: var(--ink-2); margin: 0 0 14px; font-size: 15.5px; }
+
+  .feature {
+    max-width: var(--measure);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--spec);
+    border-radius: 3px;
+    padding: 24px 28px 26px;
+    margin-bottom: 22px;
+    scroll-margin-top: 20px;
+  }
+  .feature[data-status="shipped"] { border-left-color: var(--shipped); }
+  .feature[data-status="backend"] { border-left-color: var(--backend); }
+  .feature[data-status="partial"] { border-left-color: var(--partial); }
+  .feature[hidden] { display: none; }
+
+  .feature-h {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    align-items: baseline;
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .fid {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+  .ftitle { font-family: var(--serif); font-size: 21px; line-height: 1.25; }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    padding: 10px 0 14px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 13px;
+  }
+  .meta-item { display: flex; align-items: center; gap: 7px; }
+  .meta-k {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .meta-v { color: var(--ink-2); }
+  .meta-note { color: var(--ink-3); font-size: 12.5px; }
+
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  .pill--shipped { color: var(--shipped); background: var(--shipped-bg); }
+  .pill--backend { color: var(--backend); background: var(--backend-bg); }
+  .pill--partial { color: var(--partial); background: var(--partial-bg); }
+  .pill--spec { color: var(--spec); background: var(--spec-bg); }
+
+  .feature p { margin: 0 0 12px; }
+  .feature ul, .feature ol { margin: 0 0 14px; padding-left: 20px; }
+  .feature li { margin-bottom: 5px; }
+
+  .labelled { margin-top: 20px; }
+  .label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 5px;
+  }
+  h4.sub, h5.sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 22px 0 8px;
+    font-weight: 600;
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 16px;
+  }
+  pre code { background: none; padding: 0; font-size: inherit; }
+  .gherkin { border-left: 2px solid var(--rule-2); }
+  .g-struct { color: var(--accent); font-weight: 600; }
+  .g-step { color: var(--backend); font-weight: 600; }
+
+  .table-wrap { overflow-x: auto; margin: 0 0 18px; border: 1px solid var(--rule); border-radius: 3px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td code { font-size: 12px; }
+  .verb { font-family: var(--mono); font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+  .verb--get { color: var(--backend); }
+  .verb--post { color: var(--shipped); }
+  .verb--put, .verb--patch { color: var(--partial); }
+  .verb--delete { color: var(--accent); }
+  .state { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; }
+  .state--live { color: var(--shipped); }
+  .state--proposed { color: var(--ink-3); }
+
+  .empty {
+    max-width: var(--measure);
+    margin: 40px 40px;
+    padding: 26px;
+    border: 1px dashed var(--rule-2);
+    border-radius: 3px;
+    color: var(--ink-2);
+  }
+
+  .railtoggle { display: none; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .rail {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: min(86vw, 340px);
+      z-index: 30;
+      transform: translateX(-102%);
+      transition: transform 0.22s ease;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.28);
+    }
+    .rail[data-open="true"] { transform: none; }
+    .railtoggle {
+      display: block;
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 31;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 8px 12px;
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--rule-2);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .masthead { padding: 64px 22px 32px; }
+    .cluster { padding: 0 22px; }
+    .feature { padding: 20px 18px 22px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; scroll-behavior: auto !important; }
+  }
+
+  @media print {
+    .rail, .railtoggle { display: none; }
+    .layout { display: block; }
+    .feature { break-inside: avoid; }
+  }
+</style>
+
+<button class="railtoggle" id="railtoggle" aria-expanded="false" aria-controls="rail">Index</button>
+
+<div class="layout">
+  <aside class="rail" id="rail">
+    <div class="brand">
+      <span class="brand-k">Project Template Mvp Basic</span>
+      <span class="brand-t">corpus<br />atlas</span>
+    </div>
+    <input class="search" id="search" type="search" placeholder="Filter features…" aria-label="Filter features by name" />
+    <div class="filters" role="group" aria-label="Filter by implementation status">
+      <button class="chip chip--shipped" data-status="shipped" aria-pressed="true">Shipped</button>
+      <button class="chip chip--backend" data-status="backend" aria-pressed="true">Backend</button>
+      <button class="chip chip--partial" data-status="partial" aria-pressed="true">Partial</button>
+      <button class="chip chip--spec" data-status="spec" aria-pressed="true">Spec only</button>
+    </div>
+    <nav aria-label="Feature index"><div class="nav-cluster"><a class="nav-c" href="#c01"><span class="nav-n">01</span>Architecture, Specifications &amp; Functional Domains</a><div class="nav-feats"><a href="#c01-f0" class="navf" data-status="shipped"><span class="navf-id">001-api</span><span class="navf-t">API reference</span></a><a href="#c01-f1" class="navf" data-status="shipped"><span class="navf-id">002-changelog</span><span class="navf-t">Changelog</span></a><a href="#c01-f2" class="navf" data-status="shipped"><span class="navf-id">003-ci</span><span class="navf-t">CI</span></a><a href="#c01-f3" class="navf" data-status="shipped"><span class="navf-id">004-packages</span><span class="navf-t">Packages</span></a><a href="#c01-f4" class="navf" data-status="shipped"><span class="navf-id">005-quickstart</span><span class="navf-t">Quickstart</span></a><a href="#c01-f5" class="navf" data-status="shipped"><span class="navf-id">006-template-checklist</span><span class="navf-t">Template Checklist</span></a><a href="#c01-f6" class="navf" data-status="shipped"><span class="navf-id">007-what-s-inside</span><span class="navf-t">What's inside</span></a><a href="#c01-f7" class="navf" data-status="shipped"><span class="navf-id">008-ci-one-set-of-chec</span><span class="navf-t">CI — one set of checks, three ways to run it</span></a><a href="#c01-f8" class="navf" data-status="shipped"><span class="navf-id">009-shared-forkrul-pac</span><span class="navf-t">Shared forkrul-* packages</span></a><a href="#c01-f9" class="navf" data-status="shipped"><span class="navf-id">010-documentation</span><span class="navf-t">Documentation</span></a><a href="#c01-f10" class="navf" data-status="shipped"><span class="navf-id">011-using-this-templat</span><span class="navf-t">Using this template</span></a></div></div><div class="nav-cluster"><a class="nav-c" href="#c02"><span class="nav-n">02</span>Source Modules, Runtime Surface &amp; Test Verification</a><div class="nav-feats"><a href="#c02-f0" class="navf" data-status="shipped"><span class="navf-id">101-docs-conf-py</span><span class="navf-t">Python Module Group `docs/conf.py`</span></a><a href="#c02-f1" class="navf" data-status="shipped"><span class="navf-id">102-src-mvp-template</span><span class="navf-t">Python Module Group `src/mvp_template`</span></a><a href="#c02-f2" class="navf" data-status="shipped"><span class="navf-id">103-automation-tooling</span><span class="navf-t">Automation Scripts, Hardware &amp; Frontend Assets</span></a><a href="#c02-f3" class="navf" data-status="shipped"><span class="navf-id">104-test-verification</span><span class="navf-t">Automated Test &amp; Quality Gate Suite</span></a></div></div></nav>
+  </aside>
+
+  <main>
+    <header class="masthead">
+      <div class="masthead-in">
+        <p class="eyebrow">2 clusters · No HTTP API (CLI/Library/Corpus)</p>
+        <h1>What was specified in project-template-mvp-basic, and what actually exists</h1>
+        <p class="standfirst">> Minimal, agent-ready Python/uv service skeleton for the forkrul estate — dual CI > (Woodpecker + GitHub Actions), local pipeline parity in Docker, Sphinx docs gated at > zero warnings, and an opt-in menu of shared `forkrul-*` packages.</p>
+        <div class="stats">
+          <div class="stat"><span class="stat-n">15</span><span class="stat-l">Features</span></div>
+          <div class="stat stat--shipped"><span class="stat-n">15</span><span class="stat-l">Shipped</span></div>
+          <div class="stat stat--backend"><span class="stat-n">0</span><span class="stat-l">Backend only</span></div>
+          <div class="stat stat--partial"><span class="stat-n">0</span><span class="stat-l">Partial</span></div>
+          <div class="stat stat--spec"><span class="stat-n">0</span><span class="stat-l">Spec only</span></div>
+        </div>
+        <p class="provenance">Verified against `origin/master` @ `be3c58bc8` (2026-10-31).</p>
+        
+      </div>
+    </header>
+
+    <section class="cluster" id="c01"><header class="cluster-h"><span class="cluster-n">01</span><h2>Architecture, Specifications &amp; Functional Domains</h2><p class="cluster-intro">Domain specifications, architectural design, and documented capabilities for <code>project-template-mvp-basic</code> cross-checked against the pinned repository tree (<code>be3c58bc8</code>). ---</p></header><p>Domain specifications, architectural design, and documented capabilities for <code>project-template-mvp-basic</code> cross-checked against the pinned repository tree (<code>be3c58bc8</code>).</p><section class="feature" id="c01-f0" data-status="shipped"><h3 class="feature-h"><span class="fid">001-api</span><span class="ftitle">API reference</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified in <code>docs/api.md</code> with <code>4</code> source modules)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Engineer / Operator</span></span><span class="meta-item"><span class="meta-k">Source</span><span class="meta-v"><code>docs/api.md</code></span></span></div><p class="labelled"><span class="label">What it is</span>Generated from the package's docstrings by <code>sphinx.ext.autodoc</code> — which is why</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Verified on pinned trunk ref <code>be3c58bc8</code> (2026-10-31) at <code>docs/api.md</code> (13 lines).</li></ul></section><section class="feature" id="c01-f1" data-status="shipped"><h3 class="feature-h"><span class="fid">002-changelog</span><span class="ftitle">Changelog</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified in <code>docs/changelog.md</code> with <code>4</code> source modules)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Engineer / Operator</span></span><span class="meta-item"><span class="meta-k">Source</span><span class="meta-v"><code>docs/changelog.md</code></span></span></div><p class="labelled"><span class="label">What it is</span>Specification and architectural design documented in <code>docs/changelog.md</code>.</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Verified on pinned trunk ref <code>be3c58bc8</code> (2026-10-31) at <code>docs/changelog.md</code> (2 lines).</li></ul></section><section class="feature" id="c01-f2" data-status="shipped"><h3 class="feature-h"><span class="fid">003-ci</span><span class="ftitle">CI</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified in <code>docs/ci.md</code> with <code>4</code> source modules)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Engineer / Operator</span></span><span class="meta-item"><span class="meta-k">Source</span><span class="meta-v"><code>docs/ci.md</code></span></span></div><p class="labelled"><span class="label">What it is</span>One set of checks, defined once in the <code>Makefile</code> (<code>make check</code> = lint + test +</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Verified on pinned trunk ref <code>be3c58bc8</code> (2026-10-31) at <code>docs/ci.md</code> (66 lines).</li></ul></section><section class="feature" id="c01-f3" data-status="shipped"><h3 class="feature-h"><span class="fid">004-packages</span><span class="ftitle">Packages</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified in <code>docs/packages.md</code> with <code>4</code> source modules)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Engineer / Operator</span></span><span class="meta-item"><span class="meta-k">Source</span><span class="meta-v"><code>docs/packages.md</code></span></span></div><p class="labelled"><span class="label">What it is</span>Specification and architectural design documented in <code>docs/packages.md</code>.</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Verified on pinned trunk ref <code>be3c58bc8</code> (2026-10-31) at <code>docs/packages.md</code> (2 lines).</li></ul></section><section class="feature" id="c01-f4" data-status="shipped"><h3 class="feature-h"><span class="fid">005-quickstart</span><span class="ftitle">Quickstart</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified in <code>docs/quickstart.md</code> with <code>4</code> source modules)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Engineer / Operator</span></span><span class="meta-item"><span class="meta-k">Source</span><span class="meta-v"><code>docs/quickstart.md</code></span></span></div><p class="labelled"><span class="label">What it is</span>the pinned Python and all dependencies.</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Verified on pinned trunk ref <code>be3c58bc8</code> (2026-10-31) at <code>docs/quickstart.md</code> (36 lines).</li></ul></section><section class="feature" id="c01-f5" data-status="shipped"><h3 class="feature-h"><span class="fid">006-template-checklist</span><span class="ftitle">Template Checklist</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified in <code>docs/template-checklist.md</code> with <code>4</code> source modules)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Engineer / Operator</span></span><span class="meta-item"><span class="meta-k">Source</span><span class="meta-v"><code>docs/template-checklist.md</code></span></span></div><p class="labelled"><span class="label">What it is</span>Specification and architectural design documented in <code>docs/template-checklist.md</code>.</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Verified on pinned trunk ref <code>be3c58bc8</code> (2026-10-31) at <code>docs/template-checklist.md</code> (2 lines).</li></ul></section><section class="feature" id="c01-f6" data-status="shipped"><h3 class="feature-h"><span class="fid">007-what-s-inside</span><span class="ftitle">What's inside</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified against repository implementation and documentation)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Developer / Practitioner</span></span></div><p class="labelled"><span class="label">What it is</span>| Path | Why it exists | |---|---| | <code>AGENTS.md</code> (+ <code>CLAUDE.md</code> pointer) | One instruction file for 30+ coding agents; Claude Code bridged via import | | <code>Makefile</code> | The CI-agnostic seam: every CI lane calls <code>make</code> targets, never raw commands | | <code>.woodpecker/</code> | forkrul-woodpecker-CI lanes (<code>test</code>, <code>security</code>, <code>docs</code>) — byte-compatible with <code>wp-local</code> | | <code>.github/workflows/ci.yml</code> | The same <code>make</code> targets on GitHub Actions | | <code>scripts/ci-local.sh</code> | <code>make ci-local</code>: run the real Woodpecker pipelines locally in Docker | | <code>docs/</code> | Sphinx + myst-parser (Markdown-only) site, built with <code>-W</code></p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Cross-checked against <code>README.md</code> and <code>33</code> tracked files at <code>be3c58bc8</code>.</li></ul></section><section class="feature" id="c01-f7" data-status="shipped"><h3 class="feature-h"><span class="fid">008-ci-one-set-of-chec</span><span class="ftitle">CI — one set of checks, three ways to run it</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified against repository implementation and documentation)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Developer / Practitioner</span></span></div><p class="labelled"><span class="label">What it is</span>Every lane delegates to the same <code>Makefile</code> targets, so they cannot drift: 1. <strong>Hosted Woodpecker</strong> — enable the repo on the forkrul <a href="https://github.com/forkrul/forkrul-woodpecker-CI">forkrul-woodpecker-CI</a> server; it picks up <code>.woodpecker/</code> as-is. <code>wp-local init --template python-uv</code> onboards the pre-commit engine and keeps these pipelines untouched. 2. <strong>GitHub Actions</strong> — <code>.github/workflows/ci.yml</code> runs <code>make lint</code>, <code>make test</code>, <code>make docs</code> on every push and pull request. 3. <strong>Locally, in Docker</strong> — <code>make ci-local</code> executes the actual <code>.woodpecker/*.yml</code> via <code>woodpecker-cli exec</code>. Same YAML</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Cross-checked against <code>README.md</code> and <code>33</code> tracked files at <code>be3c58bc8</code>.</li></ul></section><section class="feature" id="c01-f8" data-status="shipped"><h3 class="feature-h"><span class="fid">009-shared-forkrul-pac</span><span class="ftitle">Shared forkrul-* packages</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified against repository implementation and documentation)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Developer / Practitioner</span></span></div><p class="labelled"><span class="label">What it is</span>The estate ships reusable private packages (<code>forkrul-auth</code>, <code>forkrul-crud</code>, <code>forkrul-tasks</code>, <code>forkrul-security</code>, <code>forkrul-audio-tts</code>, <code>forkrul-techvideo</code>, <code>forkrul-common</code>, <code>forkrul-ai</code>, <code>forkrul-fastapi</code>). None is wired in by default — pick what this project needs from the menu in <a href="PACKAGES.md">PACKAGES.md</a>, which has copy-paste <code>uv add</code> / submodule commands for each.</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Cross-checked against <code>README.md</code> and <code>33</code> tracked files at <code>be3c58bc8</code>.</li></ul></section><section class="feature" id="c01-f9" data-status="shipped"><h3 class="feature-h"><span class="fid">010-documentation</span><span class="ftitle">Documentation</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified against repository implementation and documentation)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Developer / Practitioner</span></span></div><p class="labelled"><span class="label">What it is</span><code>make docs</code> builds the Sphinx site into <code>docs/_build/html/</code>. Sources are plain Markdown that GitHub renders as-is: start at <a href="docs/index.md">docs/index.md</a>. The build runs with <code>-W --keep-going</code>; a single warning fails CI.</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Cross-checked against <code>README.md</code> and <code>33</code> tracked files at <code>be3c58bc8</code>.</li></ul></section><section class="feature" id="c01-f10" data-status="shipped"><h3 class="feature-h"><span class="fid">011-using-this-templat</span><span class="ftitle">Using this template</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(verified against repository implementation and documentation)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Developer / Practitioner</span></span></div><p class="labelled"><span class="label">What it is</span>1. On GitHub choose <strong>Use this template</strong> → create a <strong>private</strong> repository (the "Template repository" flag must be enabled once in this repo's settings). 2. Work through <a href="TEMPLATE_CHECKLIST.md">TEMPLATE_CHECKLIST.md</a> top to bottom. It renames everything, wires CI and badges, and ends with a verification grep that proves no evidence of the template remains.</p><p class="labelled"><span class="label">Verification &amp; implementation notes</span></p><ul><li>Cross-checked against <code>README.md</code> and <code>33</code> tracked files at <code>be3c58bc8</code>.</li></ul></section></section><section class="cluster" id="c02"><header class="cluster-h"><span class="cluster-n">02</span><h2>Source Modules, Runtime Surface &amp; Test Verification</h2><p class="cluster-intro">Code-level audit of implemented modules, CLI/service entrypoints, and automated tests in <code>project-template-mvp-basic</code> at <code>be3c58bc8</code>. ---</p></header><p>Code-level audit of implemented modules, CLI/service entrypoints, and automated tests in <code>project-template-mvp-basic</code> at <code>be3c58bc8</code>.</p><section class="feature" id="c02-f0" data-status="shipped"><h3 class="feature-h"><span class="fid">101-docs-conf-py</span><span class="ftitle">Python Module Group <code>docs/conf.py</code></span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(<code>1</code> tracked file(s) verified on trunk)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Developer</span></span></div><p class="labelled"><span class="label">What it is</span>Live Python implementation under <code>docs/conf.py</code> (<code>docs/conf.py</code>). Contains <code>1</code> Python module(s).</p></section><section class="feature" id="c02-f1" data-status="shipped"><h3 class="feature-h"><span class="fid">102-src-mvp-template</span><span class="ftitle">Python Module Group <code>src/mvp_template</code></span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(<code>2</code> tracked file(s) verified on trunk)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Developer</span></span></div><p class="labelled"><span class="label">What it is</span>Live Python implementation under <code>src/mvp_template</code> (<code>src/mvp_template/__init__.py</code>, <code>src/mvp_template/core.py</code>). Key symbols: <code>healthcheck</code>.</p></section><section class="feature" id="c02-f2" data-status="shipped"><h3 class="feature-h"><span class="fid">103-automation-tooling</span><span class="ftitle">Automation Scripts, Hardware &amp; Frontend Assets</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(<code>1</code> tracked file(s))</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">Operator</span></span></div><p class="labelled"><span class="label">What it is</span>Repository automation, build scripts, and domain assets: <code>scripts/ci-local.sh</code>.</p></section><section class="feature" id="c02-f3" data-status="shipped"><h3 class="feature-h"><span class="fid">104-test-verification</span><span class="ftitle">Automated Test &amp; Quality Gate Suite</span></h3><div class="meta"><span class="meta-item"><span class="meta-k">Status</span><span class="pill pill--shipped">Shipped</span><span class="meta-note">(<code>1</code> test file(s) tracked in git)</span></span><span class="meta-item"><span class="meta-k">Persona</span><span class="meta-v">QA / CI Pipeline</span></span></div><p class="labelled"><span class="label">What it is</span>Verification and regression test suite covering <code>project-template-mvp-basic</code> invariants (<code>tests/test_core.py</code>).</p></section></section>
+
+    <p class="empty" id="empty" hidden>No features match that filter.</p>
+  </main>
+</div>
+
+<script>
+  (function () {
+    var feats = Array.prototype.slice.call(document.querySelectorAll(".feature"));
+    var navs = Array.prototype.slice.call(document.querySelectorAll(".navf"));
+    var chips = Array.prototype.slice.call(document.querySelectorAll(".chip"));
+    var search = document.getElementById("search");
+    var empty = document.getElementById("empty");
+    var active = { shipped: true, backend: true, partial: true, spec: true };
+
+    function apply() {
+      var q = search.value.trim().toLowerCase();
+      var shown = 0;
+      feats.forEach(function (f) {
+        var st = f.getAttribute("data-status") || "spec";
+        var ok = active[st] !== false && (!q || f.textContent.toLowerCase().indexOf(q) !== -1);
+        f.hidden = !ok;
+        if (ok) shown++;
+      });
+      navs.forEach(function (a) {
+        var st = a.getAttribute("data-status") || "spec";
+        var t = a.textContent.toLowerCase();
+        a.hidden = active[st] === false || (q && t.indexOf(q) === -1);
+      });
+      document.querySelectorAll(".cluster").forEach(function (c) {
+        var any = c.querySelector(".feature:not([hidden])");
+        c.hidden = !any;
+      });
+      empty.hidden = shown !== 0;
+    }
+
+    chips.forEach(function (c) {
+      c.addEventListener("click", function () {
+        var st = c.getAttribute("data-status");
+        var on = c.getAttribute("aria-pressed") !== "true";
+        c.setAttribute("aria-pressed", on ? "true" : "false");
+        active[st] = on;
+        apply();
+      });
+    });
+
+    search.addEventListener("input", apply);
+
+    var rail = document.getElementById("rail");
+    var toggle = document.getElementById("railtoggle");
+    toggle.addEventListener("click", function () {
+      var open = rail.getAttribute("data-open") === "true";
+      rail.setAttribute("data-open", open ? "false" : "true");
+      toggle.setAttribute("aria-expanded", open ? "false" : "true");
+    });
+    rail.addEventListener("click", function (e) {
+      if (e.target.closest("a") && window.matchMedia("(max-width: 900px)").matches) {
+        rail.setAttribute("data-open", "false");
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    });
+  })();
+</script>
