@@ -1,0 +1,10 @@
+{
+  "TITLE": "Project Template Mvp Basic \u2014 Feature & Reality Atlas",
+  "BRAND_KICKER": "Project Template Mvp Basic",
+  "BRAND_TITLE": "corpus<br />atlas",
+  "EYEBROW": "2 clusters \u00b7 No HTTP API (CLI/Library/Corpus)",
+  "HEADLINE": "What was specified in project-template-mvp-basic, and what actually exists",
+  "STANDFIRST": "> Minimal, agent-ready Python/uv service skeleton for the forkrul estate \u2014 dual CI > (Woodpecker + GitHub Actions), local pipeline parity in Docker, Sphinx docs gated at > zero warnings, and an opt-in menu of shared `forkrul-*` packages.",
+  "PROVENANCE": "Verified against `origin/master` @ `be3c58bc8` (2026-10-31).",
+  "API_LINK": ""
+}
