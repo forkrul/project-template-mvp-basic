@@ -58,6 +58,7 @@ def discover() -> list[pathlib.Path]:
         raise SystemExit(f"no cluster-*.md fragments found in {HERE}")
     return found
 
+
 STATUS_SLUGS = {
     "shipped": "shipped",
     "live": "shipped",
@@ -122,9 +123,7 @@ def gherkin(block: str) -> str:
             rest = raw[m.end() :]
             cls = "g-struct" if kw in GHERKIN_STRUCT else "g-step"
             sep = ":" if raw[m.end(2) : m.end(2) + 1] == ":" else ""
-            lines.append(
-                f'{m.group(1)}<span class="{cls}">{esc(kw)}{sep}</span>{esc(rest)}'
-            )
+            lines.append(f'{m.group(1)}<span class="{cls}">{esc(kw)}{sep}</span>{esc(rest)}')
         else:
             lines.append(esc(raw))
     return '<pre class="gherkin"><code>' + "\n".join(lines) + "</code></pre>"
@@ -179,9 +178,7 @@ def render_meta(line: str) -> str:
 
 
 def table(rows: list[str]) -> str:
-    cells = [
-        [c.strip() for c in re.sub(r"^\||\|$", "", r).split("|")] for r in rows
-    ]
+    cells = [[c.strip() for c in re.sub(r"^\||\|$", "", r).split("|")] for r in rows]
     if len(cells) >= 2 and all(re.fullmatch(r":?-{2,}:?", c) for c in cells[1] if c):
         head, body = cells[0], cells[2:]
     else:
@@ -197,7 +194,11 @@ def table(rows: list[str]) -> str:
             if low in ("live", "proposed"):
                 cls = f' class="state state--{low}"'
             elif i == 0 and c.strip().upper() in (
-                "GET", "POST", "PUT", "PATCH", "DELETE",
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
             ):
                 cls = f' class="verb verb--{c.strip().lower()}"'
             out.append(f"<td{cls}>{inline(c)}</td>")
@@ -292,21 +293,19 @@ def convert(md: str, cid: str) -> tuple[str, list[dict]]:
                     out.append(f'<section class="feature" id="{fid}" data-status="">')
                     out.append(
                         f'<h3 class="feature-h"><span class="fid">{esc(slug)}</span>'
-                        f"<span class=\"ftitle\">{inline(title)}</span></h3>"
+                        f'<span class="ftitle">{inline(title)}</span></h3>'
                     )
                 else:
                     feats.append({"id": fid, "slug": "", "title": text})
                     out.append(
-                        '<section class="feature feature--plain"'
-                        f' id="{fid}" data-status="">'
+                        f'<section class="feature feature--plain" id="{fid}" data-status="">'
                     )
                     out.append(
-                        '<h3 class="feature-h"><span class="ftitle">'
-                        f"{inline(text)}</span></h3>"
+                        f'<h3 class="feature-h"><span class="ftitle">{inline(text)}</span></h3>'
                     )
                 open_feature = True
             else:
-                out.append(f"<h{level+1} class=\"sub\">{inline(text)}</h{level+1}>")
+                out.append(f'<h{level + 1} class="sub">{inline(text)}</h{level + 1}>')
             i += 1
             continue
 
@@ -364,7 +363,7 @@ def convert(md: str, cid: str) -> tuple[str, list[dict]]:
             if qm and len(qm.group(1)) < 60:
                 inner = (
                     f'<p class="labelled"><span class="label">'
-                    f'{esc(qm.group(1).rstrip(".:"))}</span>{inline(qm.group(2))}</p>'
+                    f"{esc(qm.group(1).rstrip('.:'))}</span>{inline(qm.group(2))}</p>"
                 )
             else:
                 inner = f"<p>{inline(body)}</p>"
@@ -391,8 +390,7 @@ def convert(md: str, cid: str) -> tuple[str, list[dict]]:
             label = pm.group(1).rstrip(".:")
             rest = pm.group(2)
             out.append(
-                f'<p class="labelled"><span class="label">{esc(label)}</span>'
-                f"{inline(rest)}</p>"
+                f'<p class="labelled"><span class="label">{esc(label)}</span>{inline(rest)}</p>'
             )
             i = j
             continue
@@ -426,9 +424,7 @@ def main() -> None:
             after = raw[m1.end() :]
             stop = re.search(r"^##\s", after, re.M)
             intro_md = after[: stop.start()] if stop else after
-            intro = " ".join(
-                x.strip() for x in intro_md.strip().split("\n") if x.strip()
-            )
+            intro = " ".join(x.strip() for x in intro_md.strip().split("\n") if x.strip())
 
         chtml, feats = convert(raw, cid)
         for f in feats:
@@ -445,7 +441,7 @@ def main() -> None:
             f"</header>{chtml}</section>"
         )
         links = "".join(
-            f'<a href="#{f["id"]}" class="navf" data-status="{f.get("status","spec")}">'
+            f'<a href="#{f["id"]}" class="navf" data-status="{f.get("status", "spec")}">'
             f'<span class="navf-id">{esc(f["slug"])}</span>'
             f'<span class="navf-t">{esc(f["title"])}</span></a>'
             for f in feats
@@ -475,8 +471,9 @@ def main() -> None:
     subs.update({"{{" + k + "}}": v for k, v in copy.items()})
     href = str(copy.get("API_LINK") or "").strip()
     subs["<!--API_LINK-->"] = (
-        f'<p class="apilink"><a href="{html.escape(href, quote=True)}">'
-        "API reference &rarr;</a></p>" if href else ""
+        f'<p class="apilink"><a href="{html.escape(href, quote=True)}">API reference &rarr;</a></p>'
+        if href
+        else ""
     )
     page = shell
     for k, v in subs.items():
@@ -529,9 +526,7 @@ def write_atlas_md(frags: list[pathlib.Path]) -> None:
         parts.append(f"\n---\n\n# {title}\n{rest}\n")
     md = "".join(parts)
     (HERE / "atlas.md").write_text(md)
-    sys.stdout.write(
-        f"wrote {HERE / 'atlas.md'} — {len(frags)} clusters, {len(md):,} bytes\n"
-    )
+    sys.stdout.write(f"wrote {HERE / 'atlas.md'} — {len(frags)} clusters, {len(md):,} bytes\n")
 
 
 if __name__ == "__main__":
